@@ -78,7 +78,7 @@ class CustomKinesisDeserializer implements KinesisDeserializationSchema<String> 
         JSONObject json = new JSONObject(s);
         json.put("TenantId", partitionKey);
         json.put("timestamp", instant.getEpochSecond());
-        return json.toString();
+        return json.toString() + "\n";
     }
 
     @Override
