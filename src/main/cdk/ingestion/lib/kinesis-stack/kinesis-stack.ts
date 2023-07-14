@@ -1,14 +1,15 @@
 import {Aws, Duration, NestedStack, NestedStackProps, RemovalPolicy} from "aws-cdk-lib";
 import {Construct} from "constructs";
-import {BlockPublicAccess, Bucket, BucketEncryption} from "aws-cdk-lib/aws-s3";
+import {Bucket, BucketAccessControl, BucketEncryption, ObjectOwnership} from "aws-cdk-lib/aws-s3";
 import * as path from "path";
 import * as assets from 'aws-cdk-lib/aws-s3-assets'
 import * as kms from 'aws-cdk-lib/aws-kms';
+import {Key} from 'aws-cdk-lib/aws-kms';
 import * as kinesis from 'aws-cdk-lib/aws-kinesis';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import {Effect} from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as firehose from 'aws-cdk-lib/aws-kinesisfirehose';
-import {Effect} from "aws-cdk-lib/aws-iam";
 import * as kinesisanalyticsv2 from 'aws-cdk-lib/aws-kinesisanalyticsv2';
 
 export interface MultiTenantKinesisStackProps extends NestedStackProps {
@@ -25,15 +26,29 @@ export class MultiTenantKinesisStack extends NestedStack {
     constructor(scope: Construct, id: string, props?: MultiTenantKinesisStackProps) {
         super(scope, id, props);
 
+        const logBucket = new Bucket(this, 'access-log-bucket',{
+            enforceSSL: true,
+            versioned: true,
+            objectOwnership: ObjectOwnership.OBJECT_WRITER,
+            //blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+            encryption: BucketEncryption.KMS,
+            encryptionKey: new Key(this, 'access-log-BucketKey', {
+                enableKeyRotation: true,
+            })
+        })
+
         const destBucket = new Bucket(this, 'kinesis-dest-bucket', {
-            blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+            //blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+            objectOwnership: ObjectOwnership.OBJECT_WRITER,
             encryption: BucketEncryption.S3_MANAGED,
             enforceSSL: true,
             versioned: true,
             removalPolicy: RemovalPolicy.DESTROY,
+            //accessControl: BucketAccessControl.LOG_DELIVERY_WRITE,
+            serverAccessLogsPrefix: 'access-logs',
+            serverAccessLogsBucket: logBucket,
         });
 
-        //new CfnOutput(this, 's3-bucket', { value: destBucket.bucketName });
         this.s3Bucket = destBucket.bucketName;
 
         const asset = new assets.Asset(this, 'IngestionAsset', {
@@ -41,7 +56,9 @@ export class MultiTenantKinesisStack extends NestedStack {
         });
 
 
-        const kinesisKey = new kms.Key(this, 'KinesisKey');
+        const kinesisKey = new kms.Key(this, 'KinesisKey', {
+            enableKeyRotation: true,
+        });
 
         const kinesisDataStream = new kinesis.Stream(this, 'data-Multi-tenant-kinesis-stream', {
             encryption: kinesis.StreamEncryption.KMS,
@@ -81,7 +98,7 @@ export class MultiTenantKinesisStack extends NestedStack {
 
         kdaRole.addToPolicy(new iam.PolicyStatement({
             actions: [ 'cloudwatch:PutMetricData' ],
-            resources: [ '*' ]
+            resources: [ logStreamArn ]
         }));
 
         kdaRole.addToPolicy(new iam.PolicyStatement({
@@ -117,6 +134,9 @@ export class MultiTenantKinesisStack extends NestedStack {
 
         const firehoseStream = new firehose.CfnDeliveryStream(this, 'delivery-multi-tenant-firehose-stream', {
             deliveryStreamName: 'delivery-multi-tenant-firehose-stream',
+            deliveryStreamEncryptionConfigurationInput: {
+                keyType: "AWS_OWNED_CMK",
+            },
             extendedS3DestinationConfiguration: {
                 cloudWatchLoggingOptions: {
                     enabled: true,
@@ -159,8 +179,6 @@ export class MultiTenantKinesisStack extends NestedStack {
             resources: [firehoseStream.attrArn],
             actions: ['firehose:PutRecord', 'firehose:PutRecordBatch']
         }))
-
-        //firehoseStream.grantPutRecords(kdaRole);
 
         const kdaApp = new kinesisanalyticsv2.CfnApplication(this, 'data-analytics-multi-tenant-app', {
             runtimeEnvironment: 'FLINK-1_11',
