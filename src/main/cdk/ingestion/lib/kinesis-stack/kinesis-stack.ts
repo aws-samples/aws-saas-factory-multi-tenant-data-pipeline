@@ -1,6 +1,6 @@
 import {Aws, Duration, NestedStack, NestedStackProps, RemovalPolicy} from "aws-cdk-lib";
 import {Construct} from "constructs";
-import {Bucket, BucketAccessControl, BucketEncryption, ObjectOwnership} from "aws-cdk-lib/aws-s3";
+import {Bucket, BucketEncryption, ObjectOwnership} from "aws-cdk-lib/aws-s3";
 import * as path from "path";
 import * as assets from 'aws-cdk-lib/aws-s3-assets'
 import * as kms from 'aws-cdk-lib/aws-kms';
@@ -30,7 +30,6 @@ export class MultiTenantKinesisStack extends NestedStack {
             enforceSSL: true,
             versioned: true,
             objectOwnership: ObjectOwnership.OBJECT_WRITER,
-            //blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
             encryption: BucketEncryption.KMS,
             encryptionKey: new Key(this, 'access-log-BucketKey', {
                 enableKeyRotation: true,
@@ -38,13 +37,11 @@ export class MultiTenantKinesisStack extends NestedStack {
         })
 
         const destBucket = new Bucket(this, 'kinesis-dest-bucket', {
-            //blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
             objectOwnership: ObjectOwnership.OBJECT_WRITER,
             encryption: BucketEncryption.S3_MANAGED,
             enforceSSL: true,
             versioned: true,
             removalPolicy: RemovalPolicy.DESTROY,
-            //accessControl: BucketAccessControl.LOG_DELIVERY_WRITE,
             serverAccessLogsPrefix: 'access-logs',
             serverAccessLogsBucket: logBucket,
         });
@@ -103,10 +100,7 @@ export class MultiTenantKinesisStack extends NestedStack {
 
         kdaRole.addToPolicy(new iam.PolicyStatement({
             actions: [ 'logs:DescribeLogStreams', 'logs:DescribeLogGroups' ],
-            resources: [
-                kdaLogGroup.logGroupArn,
-                `arn:${Aws.PARTITION}:logs:${Aws.REGION}:${Aws.ACCOUNT_ID}:log-group:*`
-            ]
+            resources: [ logStreamArn ]
         }));
 
         kdaRole.addToPolicy(new iam.PolicyStatement({
