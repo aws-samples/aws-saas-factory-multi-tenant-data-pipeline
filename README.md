@@ -44,7 +44,7 @@ We have a flink application written in java as part of this deployment.  In orde
   You will want to click on the "Authorization tab, choose \"Bearer Token\" for type and copy the value from the IdToken of the JWT into the token field. <br />
   Click on the Body tab and make sure there is a Data node in the json message. <br />
    {<br />
-     &nbsp;&nbsp;Data: { <br />
+     &nbsp;&nbsp;"Data": { <br />
        &nbsp;&nbsp;&nbsp;&nbsp;"key1": "value1", <br />
        &nbsp;&nbsp;&nbsp;&nbsp;"key2": "value2", <br />
        &nbsp;&nbsp;&nbsp;&nbsp;"key3": "value3" <br />
