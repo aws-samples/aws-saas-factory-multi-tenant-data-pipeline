@@ -13,9 +13,7 @@ export class MultiTenantGlueStack extends NestedStack {
         super(scope, id, props);
 
         const glueS3Policy = new iam.PolicyStatement({
-            //actions: ['s3:*', 's3-object-lambda:*'],
             actions: ['s3:Get*', 's3:List*', 's3-object-lambda:*'],
-            //resources: ['*'],
             resources: ['arn:aws:s3:::' + props?.s3BucketName!],
         });
 
