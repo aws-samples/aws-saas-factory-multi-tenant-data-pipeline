@@ -42,7 +42,7 @@ export class MultiTenantApigatewayStack extends NestedStack {
             },
         });
 
-        const lambdaLogArn = `arn:${Aws.PARTITION}:logs:${Aws.REGION}:${Aws.ACCOUNT_ID}:log-group:/aws/lambda/*`
+        const lambdaLogArn = `arn:${Aws.PARTITION}:logs:${Aws.REGION}:${Aws.ACCOUNT_ID}:log-group:/aws/lambda/${lambdaFunction.functionName}`
         const lambdaPolicy = new iam.PolicyStatement({
             actions: ['logs:CreateLogGroup','logs:CreateLogStream','logs:PutLogEvents'],
             resources: [lambdaLogArn],
@@ -92,16 +92,20 @@ export class MultiTenantApigatewayStack extends NestedStack {
             contentType: 'application/json',
             modelName: 'InputValidationModel',
             schema: {
-                schema: apigateway.JsonSchemaVersion.DRAFT4,
+                schema: apigateway.JsonSchemaVersion.DRAFT7,
                 title: 'InputValidation',
                 type: apigateway.JsonSchemaType.OBJECT,
                 properties: {
-                    Data: {type: apigateway.JsonSchemaType.OBJECT},
-                    //device: { type: apigateway.JsonSchemaType.STRING },
-                    //event: { type: apigateway.JsonSchemaType.STRING },
-                    //region: { type: apigateway.JsonSchemaType.STRING }
+                    Data: {
+                        type: apigateway.JsonSchemaType.OBJECT,
+                        properties: {
+                            device: {type: apigateway.JsonSchemaType.STRING},
+                            event: {type: apigateway.JsonSchemaType.STRING},
+                            region: {type: apigateway.JsonSchemaType.STRING}
+                        },
+                        required: ["device", "event", "region"]
+                    },
                 },
-                //required: ["device", "event", "region"],
                 required: ["Data"],
             }
         });
@@ -123,9 +127,9 @@ export class MultiTenantApigatewayStack extends NestedStack {
                 },
             },
         }),{
-            /*requestModels: {
+            requestModels: {
                 'application/json': requestValidationModel,
-            },*/
+            },
             requestValidatorOptions: {
                 validateRequestBody: true,
                 validateRequestParameters: true,
