@@ -65,8 +65,8 @@ export class MultiTenantApigatewayStack extends NestedStack {
         const apiAccessLogGroup = new logs.LogGroup(this, 'AccessLogs', {
             retention: 14, // Keep logs for 90 days
         });
-        const restApi = new apigateway.RestApi(this, 'Multi-tenant-kinesis-RestAPI-CDK', {
-            restApiName: 'Multi-tenant-kinesis-RestAPI-CDK',
+        const restApi = new apigateway.RestApi(this, 'Multi-tenant-kinesis-RestAPI', {
+            restApiName: 'Multi-tenant-kinesis-RestAPI',
             defaultMethodOptions: {
                 authorizer,
             },
