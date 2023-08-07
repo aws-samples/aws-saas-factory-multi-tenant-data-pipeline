@@ -4,12 +4,12 @@ The project will provision an API Gateway, custom authorizer, Kinesis Data Strea
 ## Steps to deploy the solution:
 **Note**: These steps has been tested in AWS Cloud9 environment.  You can also run the deployment as long as you have all the dependencies installed.
 
-Flink Application: We have a flink application written in java as part of this deployment.  In order for us to deploy the stack, we need to first compile the flink application and create a jar file for deployement.
+Flink Application: We have a Apache Flink application written in Java as part of this deployment.  In order for us to deploy the stack, we need to first compile the Flink application and create a jar file for deployment.
 
 ### Step 1 - Prerequisities
 1. Please install Maven to build the jar file.  You can download Maven [here](https://maven.apache.org/download.cgi). Only the binaries are required, so look for the link to apache-maven-{version}-bin.zip or apache-maven-{version}-bin.tar.gz.
 
-2. Once you have downloaded the zip file, unzip it to your computer. Then add the bin folder to your path.
+2. Once you have downloaded the zip file, unzip the file, and add the bin folder to your path.
 
 ### Step 2 - Build the project
 3. Change directory in to the project's path
@@ -76,15 +76,17 @@ Flink Application: We have a flink application written in java as part of this d
 
 11. You can send a test message with [Postman](https://www.postman.com/). <br />
   For the request endpoint, you will enter the endpoint for the API Gateway we just provisioned.  You can get this from the cdk output 'IngestionStack.ApigatewayUrl' <br />
-  You will want to click on the "Authorization tab, choose \"Bearer Token\" for type and copy the value from the IdToken of the JWT into the token field. <br />
-  Click on the Body tab and make sure there is a Data node in the json message. <br />
-   {<br />
-     &nbsp;&nbsp;Data: { <br />
-       &nbsp;&nbsp;&nbsp;&nbsp;"event": "user_clicked_product_search_button", <br />
-       &nbsp;&nbsp;&nbsp;&nbsp;"region": "US", <br />
-       &nbsp;&nbsp;&nbsp;&nbsp;"device": "TV" <br />
-     &nbsp;&nbsp;}<br />
-   }
+  
+    You will want to click on the "Authorization tab, choose \"Bearer Token\" for type and copy the value from the IdToken of the JWT into the token field. <br />
+    Click on the Body tab and make sure there is a Data node in the json message. <br />
+    
+    {<br />
+      &nbsp;&nbsp;Data: { <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;"event": "user_clicked_product_search_button", <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;"region": "US", <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;"device": "TV" <br />
+      &nbsp;&nbsp;}<br />
+    }
 
 ### Step 9 - Run AWS Glue crawler
 
@@ -92,7 +94,7 @@ Now that we have sent a test message, we need to make sure we give Glue crawler 
 
 The crawler is deployed to run every 5 minutes.  The crawler will need to run first to create a Glue db. You can go see the status of the crawler job by going to AWS Glue page in the console to view the status.
 
-Once the job finish running, you can click on Databases in the Glue page and you should see a db called "multi-tenant-db"
+Once the job finish running, you can click on Databases in the Glue page and you should see a db called **multi-tenant-db**
 
 You will want to click on the database to see the name of the table created by crawler.  You will need the table name to run the Athena query.
 As part of this project, we deployed a Saved queries for Athena to show how you can query the data based on the tenantId.
