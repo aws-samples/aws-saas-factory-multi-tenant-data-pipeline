@@ -13,13 +13,14 @@ export class MultiTenantGlueStack extends NestedStack {
         super(scope, id, props);
 
         const glueS3Policy = new iam.PolicyStatement({
-            actions: ['s3:Get*', 's3:List*', 's3-object-lambda:*'],
-            resources: ['arn:aws:s3:::' + props?.s3BucketName!],
+            actions: ['s3:GetObject', 's3:PutObject'],
+            resources: ['arn:aws:s3:::' + props?.s3BucketName! + "*"],
         });
 
         const glueRole = new iam.Role(this, 'glueRole', {
             assumedBy: new iam.ServicePrincipal('glue.amazonaws.com'),
             managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSGlueServiceRole')],
+            roleName: "AWSGlueServiceRole-multi-tenant-ingestion"
         });
 
         glueRole.attachInlinePolicy(

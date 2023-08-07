@@ -94,19 +94,14 @@ export class MultiTenantKinesisStack extends NestedStack {
         asset.grantRead(kdaRole);
 
         kdaRole.addToPolicy(new iam.PolicyStatement({
-            actions: [ 'cloudwatch:PutMetricData' ],
+            actions: [ 'logs:DescribeLogStreams', 'logs:DescribeLogGroups', 'logs:PutLogEvents', 'cloudwatch:PutMetricData' ],
             resources: [ logStreamArn ]
         }));
 
         kdaRole.addToPolicy(new iam.PolicyStatement({
-            actions: [ 'logs:DescribeLogStreams', 'logs:DescribeLogGroups' ],
-            resources: [ logStreamArn ]
-        }));
-
-        kdaRole.addToPolicy(new iam.PolicyStatement({
-            actions: [ 'logs:PutLogEvents' ],
-            resources: [ logStreamArn ]
-        }));
+            actions:['kinesis:DescribeStream', 'kinesis:GetShardIterator', 'kinesis:GetRecords', 'kinesis:ListShards', 'kinesis:DescribeStreamSummary', 'kinesis:RegisterStreamConsumer' ],
+            resources: [kinesisDataStream.streamArn]
+        }))
 
 
         const firehoseLogGroup = new logs.LogGroup(this, 'firehoseLogGroup', {
@@ -123,7 +118,7 @@ export class MultiTenantKinesisStack extends NestedStack {
 
         kdaRole.addToPolicy(new iam.PolicyStatement({
             actions: [ 'logs:PutLogEvents' ],
-            resources: [ logStreamArn, firehoseLogStreamArn ]
+            resources: [ firehoseLogStreamArn ]
         }));
 
         const firehoseStream = new firehose.CfnDeliveryStream(this, 'delivery-multi-tenant-firehose-stream', {

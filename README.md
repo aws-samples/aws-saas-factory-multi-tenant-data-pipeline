@@ -69,10 +69,17 @@ Flink Application: We have a flink application written in java as part of this d
   You will want to click on the "Authorization tab, choose \"Bearer Token\" for type and copy the value from the IdToken of the JWT into the token field. <br />
   Click on the Body tab and make sure there is a Data node in the json message. <br />
    {<br />
+<<<<<<< HEAD
      &nbsp;&nbsp;Data: { <br />
        &nbsp;&nbsp;&nbsp;&nbsp;"event": "user_clicked_product_search_button", <br />
        &nbsp;&nbsp;&nbsp;&nbsp;"region": "US", <br />
        &nbsp;&nbsp;&nbsp;&nbsp;"device": "TV" <br />
+=======
+     &nbsp;&nbsp;"Data": { <br />
+       &nbsp;&nbsp;&nbsp;&nbsp;"key1": "value1", <br />
+       &nbsp;&nbsp;&nbsp;&nbsp;"key2": "value2", <br />
+       &nbsp;&nbsp;&nbsp;&nbsp;"key3": "value3" <br />
+>>>>>>> 4363cb0c99e9701d52effc54c55ef6c931c6c65c
      &nbsp;&nbsp;}<br />
    }
 

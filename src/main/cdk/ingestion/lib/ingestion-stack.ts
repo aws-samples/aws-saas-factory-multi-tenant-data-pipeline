@@ -27,7 +27,6 @@ export class IngestionStack extends Stack {
     new CfnOutput(this, 'UserPoolId', {value: cognitoStack.userPoolId});
     new CfnOutput(this, 'AppClientId', {value: cognitoStack.appClientId});
     new CfnOutput(this, 'S3Bucket', {value: kinesisStack.s3Bucket});
-    new CfnOutput(this, 'KinesisAnalyticsApplicationName', {value: kinesisStack.kinesisAnalyticsApplicationName});
     new CfnOutput(this, 'ApigatewayUrl', {value: apiGatewayStack.apiGatewayUrl});
   }
 }
