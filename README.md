@@ -12,15 +12,25 @@ Flink Application: We have a flink application written in java as part of this d
 2. Once you have downloaded the zip file, unzip it to your computer. Then add the bin folder to your path.
 
 ### Step 2 - Build the project
-3. cd <project_path> - run the command "mvn package".  This should start the build process.  If everything complete successfully, you should see "BUILD SUCCESS" message once the build process completes.
+3. Change directory in to the project's path
+
+    ```cd <project_path>```
+
+    Run the command: ```mvn package"```
+    
+    This should start the build process.  If everything complete successfully, you should see "BUILD SUCCESS" message once the build process completes.
 
 4. This should create the file <project_path>/target/aws-kinesis-analytics-java-apps-1.0.jar.
 
 ### Step 3 - Install dependencies
-5. cd <project_path>/src/main/cdk/ingestion - run the command "npm install"
+5. ```cd <project_path>/src/main/cdk/ingestion```
+
+    Run command ```npm install``` to install project dependencies.
 
 ### Step 4 - Deploy the CDK stack
-6. execute "cdk deploy" to provision the stack
+6. Execute  to provision the stack
+
+    ```cdk deploy```
 
 7. Please take note of the output from the cdk stack.  We will need the output value in later steps.
 
@@ -28,14 +38,14 @@ Flink Application: We have a flink application written in java as part of this d
 
 8. Now that we have all resources provisioned, we'll need to start the Kinesis Data Analytics application.<br />
 
-  ```cd <project_path>/scripts```
+    ```cd <project_path>/scripts```
 
-  Execute command:
+    Execute command:
 
-  ```chmod +x ./start-kda.sh ```
+    ```chmod +x ./start-kda.sh ```
 
-  ```"./start-kda.sh -r <region i.e. us-west-2> -a <application name.  This is the value from the cdk output 'IngestionStack.KinesisAnalyticsApplicationName>'" ```
-  
+    ```"./start-kda.sh -r <region i.e. us-west-2> -a <application name.  This is the value from the cdk output 'IngestionStack.KinesisAnalyticsApplicationName>'" ```
+    
 
   **Note:** script will not provide any output.  You can verify if the application started by going to Kinesis Data Analytics page in the console. Status field should show the application is "Running"
 
@@ -43,24 +53,24 @@ Flink Application: We have a flink application written in java as part of this d
 
 9. Let's create a user <br />
   
-  ```cd <project_path>/scripts ```
+    ```cd <project_path>/scripts ```
 
-  Execute command: <br />
-  ```chmod +x ./create-user.sh```
-  
-  ```"./create-user.sh -c <user-pool-id  This is from the cdk output 'IngestionStack.UserPoolId'> -u <email address> -p <password> -r <region i.e. us-west-2> -t <tenantId.  You can make up a tenant Id or name>" ```
+    Execute command: <br />
+    ```chmod +x ./create-user.sh```
+    
+    ```"./create-user.sh -c <user-pool-id  This is from the cdk output 'IngestionStack.UserPoolId'> -u <email address> -p <password> -r <region i.e. us-west-2> -t <tenantId.  You can make up a tenant Id or name>" ```
 
 ### Step 7 - Generate JWT (JSON Web Token)
 
 10. Now we have a user, we need the JWT (JSON Web Token) for the user from Amazon Congito. <br />
-  ```cd <project_path>/scripts```
+    ```cd <project_path>/scripts```
 
-  Execute command: <br />
-  ```chmod +x ./get-jwt.sh ```
-  
-  ```"./get-jwt.sh -c <app client id.  This is from the cdk output 'IngestionStack.AppClientId'> -u <email address> -p <password> -r <region i.e. us-west-2>" ```
+    Execute command: <br />
+    ```chmod +x ./get-jwt.sh ```
+    
+    ```"./get-jwt.sh -c <app client id.  This is from the cdk output 'IngestionStack.AppClientId'> -u <email address> -p <password> -r <region i.e. us-west-2>" ```
 
-  you will want the **IdToken** section of the JWT to submit requests. <br />
+    you will want the **IdToken** section of the JWT to submit requests. <br />
 
 ### Step 8 - Test the solution
 
