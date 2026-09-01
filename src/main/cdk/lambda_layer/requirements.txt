@@ -1,0 +1,29 @@
+# Dependencies vendored into ./python/ and shipped as the Lambda authorizer layer.
+#
+# The layer asset is the pre-installed `python/` tree, not this file -- nothing
+# installs from here at synth or deploy time. It exists to record what is
+# vendored and at which version, so the tree can be regenerated:
+#
+#   pip install -r requirements.txt -t python/ \
+#       --platform manylinux2014_x86_64 --python-version 3.9 --only-binary :all:
+#   find python -name '__pycache__' -type d -prune -exec rm -rf {} +
+#   rm -f python/ecdsa/test_*.py
+#
+# The last two steps matter: compiled caches are runtime-version specific and
+# the vendored ecdsa test suite carries PKCS#8 test vectors that trip secret
+# scanners (ACAT HARD_CODED_RSA_PRIVATE_KEY_DETECTED). Neither is needed at
+# runtime.
+
+# Direct dependency -- src/main/cdk/lambda_authorizer/app.py imports `jose`.
+python-jose==3.3.0
+
+# Transitive dependencies of python-jose.
+ecdsa==0.18.0
+pyasn1==0.4.8
+rsa==4.9
+six==1.16.0
+
+# Vendored but unreferenced: the authorizer uses stdlib urllib.request, and no
+# other layer package imports urllib3. Retained here only to describe the
+# current contents of python/.
+urllib3==1.26.15
