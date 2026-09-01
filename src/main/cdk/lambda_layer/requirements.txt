@@ -26,4 +26,4 @@ six==1.16.0
 # Vendored but unreferenced: the authorizer uses stdlib urllib.request, and no
 # other layer package imports urllib3. Retained here only to describe the
 # current contents of python/.
-urllib3==1.26.15
+urllib3==2.7.0
