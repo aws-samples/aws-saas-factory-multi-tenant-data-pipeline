@@ -18,7 +18,7 @@
 python-jose==3.3.0
 
 # Transitive dependencies of python-jose.
-ecdsa==0.18.0
+ecdsa==0.19.2
 pyasn1==0.4.8
 rsa==4.9
 six==1.16.0
