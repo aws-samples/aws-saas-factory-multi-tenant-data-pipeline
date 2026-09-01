@@ -1,0 +1,8 @@
+# Compiled caches are specific to the interpreter that produced them and are
+# never needed at runtime -- regenerating the vendored tree must not commit them.
+__pycache__/
+*.py[cod]
+
+# The vendored ecdsa package ships its own test suite, whose PKCS#8 test
+# vectors trip secret scanners. Keep it out of the layer.
+python/ecdsa/test_*.py

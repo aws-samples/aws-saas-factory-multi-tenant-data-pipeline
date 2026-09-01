@@ -20,7 +20,13 @@ export class MultiTenantApigatewayStack extends NestedStack {
         super(scope, id, props);
 
         const authorizerLayer = new lambda.LayerVersion(this, 'AuthorizerLayer', {
-            code: lambda.Code.fromAsset(path.join(__dirname, '../../../lambda_layer/')),
+            code: lambda.Code.fromAsset(path.join(__dirname, '../../../lambda_layer/'), {
+                // Only the vendored `python/` tree belongs in the layer. These
+                // exclusions keep a local `pip install -t python/` from shipping
+                // interpreter-specific caches or the vendored ecdsa test suite,
+                // whose PKCS#8 test vectors trip secret scanners.
+                exclude: ['requirements.txt', '.gitignore', '**/__pycache__', '**/*.py[cod]', 'python/ecdsa/test_*.py'],
+            }),
             description: 'Common Layer for Lambda Authorizer',
             compatibleRuntimes: [lambda.Runtime.PYTHON_3_9],
             removalPolicy: RemovalPolicy.DESTROY
