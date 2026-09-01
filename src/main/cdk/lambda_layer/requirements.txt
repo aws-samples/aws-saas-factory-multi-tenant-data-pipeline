@@ -6,24 +6,33 @@
 #
 #   pip install -r requirements.txt -t python/ \
 #       --platform manylinux2014_x86_64 --python-version 3.9 --only-binary :all:
+#   rm -rf python/bin
 #   find python -name '__pycache__' -type d -prune -exec rm -rf {} +
 #   rm -f python/ecdsa/test_*.py
 #
-# The last two steps matter: compiled caches are runtime-version specific and
-# the vendored ecdsa test suite carries PKCS#8 test vectors that trip secret
-# scanners (ACAT HARD_CODED_RSA_PRIVATE_KEY_DETECTED). Neither is needed at
-# runtime.
+# The cleanup steps matter:
+#   - python/bin holds console scripts whose shebang is an absolute path to
+#     whichever interpreter ran pip. Meaningless in a layer.
+#   - Compiled caches are specific to the interpreter that produced them; the
+#     runtime here is Python 3.9.
+#   - The vendored ecdsa test suite carries PKCS#8 test vectors that trip secret
+#     scanners (ACAT HARD_CODED_RSA_PRIVATE_KEY_DETECTED).
+# None of the three are needed at runtime.
 
 # Direct dependency -- src/main/cdk/lambda_authorizer/app.py imports `jose`.
-python-jose==3.3.0
+python-jose==3.5.0
 
-# Transitive dependencies of python-jose.
-ecdsa==0.18.0
-pyasn1==0.4.8
-rsa==4.9
-six==1.16.0
+# Transitive dependencies of python-jose. `six` comes in via ecdsa.
+ecdsa==0.19.2
+pyasn1==0.6.4
+rsa==4.9.1
+six==1.17.0
 
-# Vendored but unreferenced: the authorizer uses stdlib urllib.request, and no
-# other layer package imports urllib3. Retained here only to describe the
-# current contents of python/.
-urllib3==1.26.15
+# Note on remaining exposure: ecdsa 0.19.2 is still subject to PYSEC-2026-1325
+# (Minerva timing side-channel). No fixed version exists -- upstream treats
+# side-channel resistance as out of scope. It reaches us only as a python-jose
+# dependency, and the authorizer verifies RS256 tokens, not ECDSA ones.
+#
+# `cryptography` is deliberately absent, so python-jose falls back to its pure
+# Python backend (jose.backends.rsa_backend, built on rsa + pyasn1). Adding
+# `cryptography` would mean vendoring a platform-specific binary wheel.

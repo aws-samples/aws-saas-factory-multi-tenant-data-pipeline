@@ -6,3 +6,7 @@ __pycache__/
 # The vendored ecdsa package ships its own test suite, whose PKCS#8 test
 # vectors trip secret scanners. Keep it out of the layer.
 python/ecdsa/test_*.py
+
+# Console scripts installed by `pip install -t`. Their shebang is an absolute
+# path to the interpreter that ran pip, so they are machine-specific junk here.
+python/bin/
