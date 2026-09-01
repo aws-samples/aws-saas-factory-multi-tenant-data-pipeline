@@ -25,7 +25,7 @@ export class MultiTenantApigatewayStack extends NestedStack {
                 // exclusions keep a local `pip install -t python/` from shipping
                 // interpreter-specific caches or the vendored ecdsa test suite,
                 // whose PKCS#8 test vectors trip secret scanners.
-                exclude: ['requirements.txt', '.gitignore', '**/__pycache__', '**/*.py[cod]', 'python/ecdsa/test_*.py'],
+                exclude: ['requirements.txt', '.gitignore', '**/__pycache__', '**/*.py[cod]', 'python/ecdsa/test_*.py', 'python/bin'],
             }),
             description: 'Common Layer for Lambda Authorizer',
             compatibleRuntimes: [lambda.Runtime.PYTHON_3_9],
