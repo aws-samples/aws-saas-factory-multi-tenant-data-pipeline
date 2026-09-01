@@ -4,7 +4,6 @@ import {Bucket, BucketEncryption, ObjectOwnership} from "aws-cdk-lib/aws-s3";
 import * as path from "path";
 import * as assets from 'aws-cdk-lib/aws-s3-assets'
 import * as kms from 'aws-cdk-lib/aws-kms';
-import {Key} from 'aws-cdk-lib/aws-kms';
 import * as kinesis from 'aws-cdk-lib/aws-kinesis';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import {Effect} from 'aws-cdk-lib/aws-iam';
@@ -26,14 +25,15 @@ export class MultiTenantKinesisStack extends NestedStack {
     constructor(scope: Construct, id: string, props?: MultiTenantKinesisStackProps) {
         super(scope, id, props);
 
+        // S3 server access log delivery does not support SSE-KMS on the target
+        // bucket, so this one must use SSE-S3. Setting anything else here fails
+        // synthesis: "SSE-S3 is the only supported default bucket encryption for
+        // Server Access Logging target buckets".
         const logBucket = new Bucket(this, 'access-log-bucket',{
             enforceSSL: true,
             versioned: true,
             objectOwnership: ObjectOwnership.OBJECT_WRITER,
-            encryption: BucketEncryption.KMS,
-            encryptionKey: new Key(this, 'access-log-BucketKey', {
-                enableKeyRotation: true,
-            })
+            encryption: BucketEncryption.S3_MANAGED,
         })
 
         const destBucket = new Bucket(this, 'kinesis-dest-bucket', {
