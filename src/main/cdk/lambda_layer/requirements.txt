@@ -24,7 +24,7 @@ python-jose==3.5.0
 
 # Transitive dependencies of python-jose. `six` comes in via ecdsa.
 ecdsa==0.19.2
-pyasn1==0.6.4
+pyasn1==0.6.5
 rsa==4.9.1
 six==1.17.0
 
