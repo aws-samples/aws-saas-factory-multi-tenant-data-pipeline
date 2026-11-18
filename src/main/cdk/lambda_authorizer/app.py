@@ -17,9 +17,12 @@ def lambda_handler(event, context):
     if token.find('Bearer ') != -1:
         token = token[len('Bearer '):len(token)]
 
-    payload = jwt.get_unverified_claims(token)
-    tenantId = payload['custom:tenantId']
-
+    # Claims are deliberately NOT read here. Everything this function trusts is taken
+    # from `claims` below, after the signature has been verified, so that no decision
+    # can ever be made on an unverified value. The previous version read the tenant
+    # claim at this point and used that copy; the token bytes are the same either way,
+    # so it was not exploitable, but it put an unverified read on the trust path where a
+    # later edit could easily start depending on it.
     userpool_id = os.environ["USERPOOL_ID"]
     keys_url = 'https://cognito-idp.{}.amazonaws.com/{}/.well-known/jwks.json'.format(region, userpool_id)
     # get the kid from the headers prior to verification
@@ -66,10 +69,29 @@ def lambda_handler(event, context):
         print('Token is expired')
         raise Exception('Unauthorized')
 
+    # This solution authorizes with the ID token -- README step 10 directs the caller to
+    # submit the IdToken -- because custom:tenantId is an ID token claim. Reject anything
+    # else rather than relying on the tenant claim simply being absent from an access
+    # token, so the intent is explicit.
+    if claims.get('token_use') != 'id':
+        print('Token is not an ID token')
+        raise Exception('Unauthorized')
+
+    # The tenant identifier, read only now that the signature is verified. It decides the
+    # Kinesis partition key and therefore the S3 "tenant=" prefix, so a token without it
+    # must be refused outright rather than allowed to produce an empty or missing
+    # partition. Note that Cognito signing this claim proves only that Cognito issued it,
+    # not that the user was entitled to its value -- the app client's writeAttributes
+    # restriction in multi-tenant-cognito-stack.ts is what makes that true.
+    tenantId = claims.get('custom:tenantId')
+    if not tenantId:
+        print('Token carries no custom:tenantId claim')
+        raise Exception('Unauthorized')
+
     tmp = event['methodArn'].split(':')
     apiGatewayArnTmp = tmp[5].split('/')
     awsAccountId = tmp[4]
-    principalId = payload['cognito:username']
+    principalId = claims['cognito:username']
 
     policy = AuthPolicy(principalId, awsAccountId)
     policy.restApiId = apiGatewayArnTmp[0]

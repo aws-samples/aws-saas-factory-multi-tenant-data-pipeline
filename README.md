@@ -1,6 +1,34 @@
 # Building a SaaS Multi-Tenant Data Ingestion, Storage and Querying Engine Using AWS Services
 The project will provision an API Gateway, custom authorizer, Kinesis Data Stream, Kinesis Data Analytics, Kinesis Firehose, and S3 bucket for data lake.<br />
 
+## How tenant identity works here — read this before adapting the solution
+
+The tenant boundary in this solution is the `custom:tenantId` claim on the caller's Amazon
+Cognito ID token. The Lambda authorizer reads that claim, API Gateway passes it through as the
+Kinesis partition key, and Kinesis Firehose turns it into the literal `tenant=` prefix in the S3
+data lake. **Whoever controls that value controls which tenant's partition the data lands in.**
+
+Two settings keep that value out of the end user's hands, and both matter:
+
+1. **The app client restricts `writeAttributes` to standard attributes only.** Omitting
+   `writeAttributes` is the *permissive* option — a Cognito app client created without it lets
+   the user write every mutable attribute, custom ones included, through the ordinary
+   `UpdateUserAttributes` API with nothing but their own access token. Cognito then signs the
+   changed value, so a signature check on the authorizer side still passes.
+2. **Self-signup is disabled.** Tenant assignment is an administrative action:
+   `scripts/create-user.sh` calls `admin-create-user` with the tenant id, and that is the only
+   supported way to create a user. `writeAttributes` does not restrict the admin APIs, which is
+   why the custom attributes remain `mutable` and an operator can still reassign a tenant.
+
+If you adapt this solution and want open registration, you must add a server-side tenant
+assignment — a pre-signup or post-confirmation Lambda trigger that sets `custom:tenantId` from
+something the caller cannot choose. Do not leave registration open while a user-writable claim
+decides the data partition.
+
+Likewise, do not add a `readAttributes` list that omits `custom:tenantId`: read permissions
+determine which attributes appear as ID token claims, so removing it would strip the claim from
+the token and break authorization for every request.
+
 ## Steps to deploy the solution:
 **Note**: These steps has been tested in AWS Cloud9 environment.  You can also run the deployment as long as you have all the dependencies installed.
 
